@@ -112,7 +112,7 @@
   /* Sandia Mountains: full-bleed, sits on the footer, peaks rise up behind the bottom of the form */
   /* Shows the top half of the photo (ridge + upper slopes); the valley is cropped off behind the footer */
   .sandias { position: relative; z-index: 1; margin-top: calc(-0.022 * 100vw); aspect-ratio: 2851 / 365; overflow: hidden; line-height: 0; pointer-events: none; }
-  .sandias img { width: 100%; height: auto; display: block; }
+  .sandias img { width: 100%; height: auto; display: block; transform: translate3d(0, var(--rise, 0%), 0); will-change: transform; }
   .contact .wrap { padding-top: 140px; padding-bottom: 48px; display: flex; gap: 120px; align-items: flex-start; }
   .contact-copy { display: flex; flex-direction: column; gap: 24px; flex-shrink: 0; }
   .contact h2 { font-weight: 300; font-size: 72px; line-height: 1; letter-spacing: -2.16px; width: 480px; }
@@ -476,6 +476,27 @@
   addEventListener('scroll', onScroll, { passive: true });
   addEventListener('resize', onScroll);
   measure(); current = target; ticking = true; frame(); onScroll();
+
+  // Sandias rise: as the footer scrolls into view the mountains ease up from ~18% lower into place
+  const sandias = document.querySelector('.sandias');
+  if (sandias && !reduce) {
+    let mTarget = 1, mCur = 1, mTick = false;
+    const mMeasure = () => {
+      const r = sandias.getBoundingClientRect();
+      // 0 when the strip's top reaches the bottom of the window, 1 at the very bottom of the page
+      const start = innerHeight, end = innerHeight - r.height - document.querySelector('footer').offsetHeight;
+      mTarget = Math.min(1, Math.max(0, (start - r.top) / (start - end)));
+    };
+    const mFrame = () => {
+      mCur += (mTarget - mCur) * 0.1;
+      sandias.style.setProperty('--rise', ((1 - mCur) * 18).toFixed(2) + '%');
+      if (Math.abs(mTarget - mCur) > 0.001) requestAnimationFrame(mFrame); else mTick = false;
+    };
+    const mOnScroll = () => { mMeasure(); if (!mTick) { mTick = true; requestAnimationFrame(mFrame); } };
+    addEventListener('scroll', mOnScroll, { passive: true });
+    addEventListener('resize', mOnScroll);
+    mMeasure(); mCur = mTarget; mTick = true; mFrame();
+  }
 
   // Reveal on enter
   const io = new IntersectionObserver(entries => entries.forEach(e => {
