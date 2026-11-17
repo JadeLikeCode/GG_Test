@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Good Growth — Strategy & design partner for startups</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 48 48%22%3E%3Cpath d=%22M0 0H48V48H0z%22 fill=%22%23131316%22/%3E%3Cpath d=%22M31.9 10.44L10.44 37.56H16.1L37.56 10.44z%22 fill=%22%23F1FF72%22/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #131316;
+    --lime: #f1ff72;
+    --cream: #f6f7eb;
+    --grey: #5a5a5c;
+    --muted: #b8b8b9;
+    --periwinkle: #7c8cf7;
+    --pad: 75px;    /* nav, hero, footer — matches live site */
+    --inset: 105px; /* content sections — live site insets an extra 30px */
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  /* Anchored sections stop just below the sticky nav (its compact, scrolled height) */
+  section[id], header[id] { scroll-margin-top: 84px; }
+  body { font-family: 'Inter', system-ui, sans-serif; color: var(--ink); background: #fff; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+  a { color: inherit; text-decoration: none; }
+  img { display: block; }
+  .wrap { padding-left: var(--pad); padding-right: var(--pad); }
+
+  /* Buttons + links */
+  .btn { display: inline-flex; align-items: center; background: var(--ink); color: var(--lime); border-radius: 999px; font-weight: 500; line-height: 1.4; border: 0; cursor: pointer; font-family: inherit; transition: transform .25s ease, background .25s ease, color .25s ease; }
+  .btn:hover { background: var(--lime); color: var(--ink); box-shadow: inset 0 0 0 1.5px var(--ink); }
+  .btn:active { transform: scale(.97); }
+  .ulink { font-weight: 500; font-size: 16px; line-height: 1.4; text-decoration: underline; text-underline-offset: 3px; white-space: nowrap; transition: opacity .2s; }
+  .ulink:hover { opacity: .6; }
+
+  /* Nav */
+  /* Fixed (not sticky) so the nav shrinking on scroll never shifts the page content */
+  :root { --nav-h: 128px; }
+  body { padding-top: var(--nav-h); }
+  nav { position: fixed; top: 0; left: 0; right: 0; z-index: 50; background: rgba(255,255,255,.92); backdrop-filter: blur(10px); transition: box-shadow .3s; }
+  nav.scrolled { box-shadow: 0 1px 0 rgba(19,19,22,.08); }
+  nav .wrap { display: flex; align-items: center; justify-content: space-between; padding-top: 40px; padding-bottom: 40px; transition: padding .3s; }
+  nav.scrolled .wrap { padding-top: 18px; padding-bottom: 18px; }
+  nav .links { display: flex; gap: 36px; align-items: center; }
+  nav .links > a:not(.btn) { font-weight: 400; font-size: 16px; line-height: 1.4; position: relative; }
+  nav .links > a:not(.btn)::after { content: ''; position: absolute; left: 0; right: 0; bottom: -2px; height: 1.5px; background: var(--ink); transform: scaleX(0); transform-origin: left; transition: transform .25s; }
+  nav .links > a:not(.btn):hover::after { transform: scaleX(1); }
+  nav .btn { padding: 12px 22px; font-size: 15px; }
+  .logo-mark { width: 48px; height: 48px; display: block; }
+
+  /* Hero */
+  /* Hero fills the viewport below the nav; square sized in JS to the hero height, right edge on the page margin. */
+  .hero .wrap { display: grid; grid-template-columns: minmax(0, 1fr) var(--anim, 420px); column-gap: 80px; align-items: center; min-height: calc(100vh - var(--nav-h, 128px)); min-height: calc(100svh - var(--nav-h, 128px)); padding-top: 56px; padding-bottom: 56px; }
+  .hero h1 { font-weight: 300; font-size: clamp(48px, 4vw, 80px); line-height: 1; letter-spacing: -0.04em; text-wrap: balance; }
+  .hero .sub { padding-top: 56px; display: flex; flex-direction: column; gap: 32px; }
+  .hero .sub p { font-weight: 300; font-size: 22px; line-height: 1.5; color: var(--grey); max-width: 520px; }
+  .hero .ctas { display: flex; gap: 16px; align-items: center; }
+  .hero .btn { padding: 18px 28px; font-size: 16px; }
+
+  /* Logo animation (Lottie: yellow trajectory becomes slash) */
+  .logo-anim { position: relative; width: 100%; aspect-ratio: 1; overflow: hidden; background: #fff; }
+  .logo-anim svg { display: block; width: 100%; height: 100%; }
+  .logo-anim { cursor: pointer; }
+
+  /* Capabilities flood (parallax rows) */
+  .flood { background: var(--lime); padding: 72px 0 96px; overflow: hidden; }
+  .flood .label { padding: 0 0 40px var(--inset); font-weight: 400; font-size: 20px; line-height: 1.4;}
+  .row { height: 200px; position: relative; }
+  .marquee { position: absolute; top: 16px; left: 0; display: flex; gap: 36px; align-items: center; white-space: nowrap; line-height: 1; will-change: transform; }
+  .marquee .small { font-weight: 300; font-size: 56px; letter-spacing: -1.12px; }
+  .marquee .big { font-weight: 500; font-size: 168px; letter-spacing: -6.72px; }
+
+  /* Capabilities + logos */
+  .caps { background: var(--cream); }
+  .caps .wrap, .work .wrap, .contact .wrap { padding-left: var(--inset); padding-right: var(--inset); }
+  .caps .wrap { padding-top: 140px; padding-bottom: 140px; display: flex; flex-direction: column; gap: 96px; }
+  .head-row { display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; }
+  .caps h2 { font-weight: 300; font-size: 48px; line-height: 1.2; letter-spacing: -0.48px; }
+  .cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 48px; }
+  .eyebrow { font-weight: 500; font-size: 15px; letter-spacing: 0.9px; line-height: 1.4; }
+  .col .eyebrow { border-bottom: 1.5px solid var(--ink); padding-bottom: 16px; margin-bottom: 24px; }
+  .col ul { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+  .col li { font-weight: 300; font-size: 40px; line-height: 1.15; letter-spacing: -0.8px; transition: transform .25s ease; }
+  .col li:hover { transform: translateX(8px); }
+  .garden { border-top: 1px solid var(--ink); padding-top: 48px; display: flex; flex-direction: column; gap: 32px; }
+  .logos { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; }
+  .logos div { height: 120px; display: flex; align-items: center; justify-content: center; font-weight: 500; font-size: 28px; letter-spacing: -0.84px; }
+  .logos .placeholder { color: var(--muted); }
+
+  /* Selected work */
+  .work .wrap { padding-top: 140px; padding-bottom: 140px; display: flex; flex-direction: column; gap: 120px; }
+  .work h2 { font-weight: 300; font-size: 56px; line-height: 1.1; letter-spacing: -1.68px; }
+  .project { display: flex; gap: 80px; align-items: center; }
+  .project .img { width: 62%; aspect-ratio: 800 / 560; flex-shrink: 0; overflow: hidden; }
+  .project .img img { width: 100%; height: 100%; object-fit: cover; transform: scale(1.08); transition: transform 1.2s cubic-bezier(.2,.7,.2,1); }
+  .project:hover .img img { transform: scale(1.12); }
+  .project.in .img img { transform: scale(1); }
+  .project.in:hover .img img { transform: scale(1.04); }
+  .blurb { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 28px; }
+  .blurb .heading { display: flex; flex-direction: column; gap: 12px; }
+  .blurb .tags { font-weight: 400; font-size: 15px; line-height: 1.4; color: var(--grey); }
+  .blurb h3 { font-weight: 400; font-size: 40px; line-height: 1.1; letter-spacing: -0.8px; }
+  .quote { border-left: 3px solid var(--periwinkle); padding-left: 20px; display: flex; flex-direction: column; gap: 10px; }
+  .quote p { font-weight: 400; font-size: 18px; line-height: 1.45; }
+  .quote cite { font-style: normal; font-size: 14px; line-height: 1.4; color: var(--grey); }
+
+  /* Contact */
+  .contact { background: var(--cream); position: relative; }
+  .contact .wrap { position: relative; z-index: 2; }
+  /* Sandia Mountains: full-bleed, sits on the footer, peaks rise up behind the bottom of the form */
+  /* Shows the top half of the photo (ridge + upper slopes); the valley is cropped off behind the footer */
+  .sandias { position: relative; z-index: 1; margin-top: calc(-0.022 * 100vw); aspect-ratio: 2851 / 365; overflow: hidden; line-height: 0; pointer-events: none; }
+  .sandias img { width: 100%; height: auto; display: block; }
+  .contact .wrap { padding-top: 140px; padding-bottom: 48px; display: flex; gap: 120px; align-items: flex-start; }
+  .contact-copy { display: flex; flex-direction: column; gap: 24px; flex-shrink: 0; }
+  .contact h2 { font-weight: 300; font-size: 72px; line-height: 1; letter-spacing: -2.16px; width: 480px; }
+  .contact-copy .lede { font-weight: 300; font-size: 20px; line-height: 1.5; color: var(--grey); width: 460px; }
+  .contact-copy .email { font-weight: 500; font-size: 18px; line-height: 1.4; }
+  .contact-copy .loc { font-size: 16px; line-height: 1.4; color: var(--grey); }
+  form { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 36px; }
+  .name-row { display: flex; gap: 32px; }
+  .name-row .field { flex: 1; }
+  .field { position: relative; border-bottom: 1px solid var(--ink); }
+  .field::after { content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: var(--ink); transform: scaleX(0); transform-origin: left; transition: transform .3s; }
+  .field:focus-within::after { transform: scaleX(1); }
+  .field input, .field select, .field textarea { width: 100%; background: transparent; border: 0; outline: 0; font: 400 16px/1.4 'Inter', sans-serif; color: var(--ink); padding: 0 0 14px; resize: none; }
+  .field input::placeholder, .field textarea::placeholder { color: var(--grey); }
+  .field select { appearance: none; cursor: pointer; color: var(--grey); }
+  .field select.chosen { color: var(--ink); }
+  .field.select::before { content: '↓'; position: absolute; right: 0; top: 0; color: var(--grey); pointer-events: none; }
+  .field textarea { height: 116px; }
+  .field.invalid { border-color: #d6453d; }
+  .field.invalid input::placeholder, .field.invalid textarea::placeholder { color: #d6453d; }
+  form .btn { padding: 20px 36px; font-size: 16px; align-self: flex-start; }
+  .sent { display: none; font-size: 20px; line-height: 1.5; }
+  .sent strong { font-weight: 500; }
+
+  /* Footer */
+  footer { background: var(--ink); }
+  footer .wrap { padding-top: 56px; padding-bottom: 56px; display: flex; justify-content: space-between; align-items: center; }
+  .wordmark { color: var(--lime); font-weight: 500; font-size: 44px; letter-spacing: -0.44px; line-height: .95; }
+  .foot-links { display: flex; flex-direction: column; gap: 20px; align-items: flex-end; }
+  .foot-links nav { all: unset; display: flex; gap: 32px; }
+  .foot-links nav a { color: #fff; font-weight: 400; font-size: 16px; line-height: 1.4; transition: color .2s; }
+  .foot-links nav a:hover { color: var(--lime); }
+  .foot-links small { color: var(--muted); font-size: 15px; line-height: 1.4; }
+
+  /* Reveal */
+  .reveal { opacity: 0; transform: translateY(28px); transition: opacity .8s ease, transform .8s cubic-bezier(.2,.7,.2,1); }
+  .reveal.in { opacity: 1; transform: none; }
+
+  /* Responsive */
+  @media (max-width: 1200px) {
+    :root { --pad: 48px; --inset: 72px; }
+    .hero .wrap { column-gap: 56px; }
+    .contact .wrap { gap: 64px; }
+    .contact h2, .contact-copy .lede { width: 360px; }
+  }
+  @media (max-width: 860px) {
+    :root { --pad: 24px; --inset: 24px; }
+    nav .links > a:not(.btn) { display: none; }
+    :root { --nav-h: 88px; }
+    nav .wrap { padding-top: 20px; padding-bottom: 20px; }
+    .hero .wrap { grid-template-columns: 1fr; row-gap: 40px; min-height: 0; padding-top: 40px; padding-bottom: 80px; }
+    .logo-anim { order: -1; }
+    .hero h1 { font-size: 46px; }
+    .hero .sub p { font-size: 18px; }
+    .logo-anim { width: 160px; }
+    .row { height: 110px; }
+    .marquee { gap: 20px; }
+    .marquee .big { font-size: 92px; letter-spacing: -3.6px; }
+    .marquee .small { font-size: 30px; }
+    .flood .label { font-size: 16px; }
+    .caps .wrap, .work .wrap, .contact .wrap { padding-top: 88px; padding-bottom: 88px; gap: 64px; }
+    .head-row { flex-direction: column; align-items: flex-start; }
+    .caps h2 { font-size: 34px; }
+    .cols { grid-template-columns: 1fr; gap: 48px; }
+    .col li { font-size: 30px; }
+    .logos { grid-template-columns: repeat(2, 1fr); }
+    .logos div { height: 80px; font-size: 22px; }
+    .work h2 { font-size: 40px; }
+    .project, .project.rev { flex-direction: column; align-items: stretch; gap: 32px; }
+    .project.rev .img { order: -1; }
+    .project .img { width: 100%; }
+    .contact .wrap { flex-direction: column; }
+    .contact .wrap { padding-bottom: 32px; }
+    .sandias { margin-top: -16px; aspect-ratio: 2851 / 657; }
+    .sandias img { width: 180%; margin-left: -40%; }
+    .contact h2, .contact-copy .lede { width: auto; }
+    .contact h2 { font-size: 56px; }
+    .name-row { flex-direction: column; gap: 36px; }
+    footer .wrap { flex-direction: column; align-items: flex-start; gap: 32px; }
+    .foot-links { align-items: flex-start; }
+    .foot-links nav { flex-wrap: wrap; gap: 20px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .reveal { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav id="nav">
+  <div class="wrap">
+    <a href="#" id="homeLink" aria-label="Good Growth home"><svg class="logo-mark" viewBox="0 0 48 48" role="img" aria-label="Good Growth"><path d="M0 0H48V48H0V0Z" fill="#131316"/><path d="M31.9002 10.4352L10.4352 37.5627H16.0998L37.5627 10.4352H31.9002Z" fill="#F1FF72"/></svg></a>
+    <div class="links">
+      <a href="#work">Work</a>
+      <a href="#services">Services</a>
+      <a href="#about">About</a>
+      <a class="btn" href="#contact">Work with us</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <div class="wrap">
+    <div>
+      <h1>The strategy and design partner for startups ready to be&nbsp;seen.</h1>
+      <div class="sub">
+        <p>A founder-led studio in Albuquerque helping early-stage companies get aligned, get seen and get moving, from the first strategy session to launch.</p>
+        <div class="ctas">
+          <a class="btn" href="#contact">Start a project</a>
+          <a class="ulink" href="#work">See the work →</a>
+        </div>
+      </div>
+    </div>
+    <div class="logo-anim" id="logoAnim" role="img" aria-label="Good Growth logo: a rising line chart becomes the slash" title="Click to replay">
+      <svg viewBox="0 0 1000 1000" aria-hidden="true">
+        <defs><clipPath id="ggBand"><rect x="0" y="217.4" width="1000" height="565.16"/></clipPath></defs>
+        <rect id="ggBlack" width="1000" height="1000" fill="#131316"/>
+        <g clip-path="url(#ggBand)">
+          <polyline id="ggLine" fill="none" stroke="#F1FF72" stroke-linejoin="miter" stroke-miterlimit="10" stroke-linecap="butt"/>
+        </g>
+      </svg>
+    </div>
+  </div>
+</header>
+
+<section class="flood" id="services" aria-label="This is how we grow brands">
+  <p class="label">This is how we grow brands</p>
+  <div class="row"><div class="marquee" data-dir="-1" data-offset="-420" data-small="get aligned" data-big="STRATEGY"></div></div>
+  <div class="row"><div class="marquee" data-dir="1"  data-offset="-900" data-small="get seen" data-big="BRAND + MESSAGING"></div></div>
+  <div class="row"><div class="marquee" data-dir="-1" data-offset="-260" data-small="get moving" data-big="CAMPAIGNS + WEBSITES"></div></div>
+</section>
+
+<section class="caps" id="about">
+  <div class="wrap">
+    <div class="head-row reveal">
+      <h2>Work that changes your trajectory.</h2>
+      <a class="ulink" href="#contact">Work with us →</a>
+    </div>
+    <div class="cols">
+      <div class="col reveal">
+        <p class="eyebrow">GET ALIGNED</p>
+        <ul><li>Business strategy</li><li>Facilitation</li><li>Sales enablement</li><li>Employer branding</li><li>Investor materials</li></ul>
+      </div>
+      <div class="col reveal">
+        <p class="eyebrow">GET SEEN</p>
+        <ul><li>Brand identity</li><li>Messaging</li><li>Campaigns</li><li>Content</li><li>Sales collateral</li></ul>
+      </div>
+      <div class="col reveal">
+        <p class="eyebrow">GET MOVING</p>
+        <ul><li>Websites</li><li>Social</li><li>Marketing plans</li><li>Campaign execution</li><li>Ongoing support</li></ul>
+      </div>
+    </div>
+    <div class="garden reveal">
+      <p class="eyebrow">TRUSTED BY FOUNDERS AND TEAMS AT</p>
+      <div class="logos">
+        <div>Personified</div><div>Bee Clean</div><div>NMT</div>
+        <div class="placeholder">Client name</div><div class="placeholder">Client name</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="work" id="work">
+  <div class="wrap">
+    <div class="head-row reveal">
+      <h2>Selected work</h2>
+      <a class="ulink" href="#work">All work →</a>
+    </div>
+
+    <article class="project reveal">
+      <div class="img"><img src="assets/personified.png" alt="Personified Brand illustration: people sitting on a blue padlock with the Personified mark"></div>
+      <div class="blurb">
+        <div class="heading">
+          <p class="tags">Web Design · Branding · Marketing</p>
+          <h3>Personified Brand</h3>
+        </div>
+        <a class="ulink" href="#">View case study →</a>
+        <blockquote class="quote">
+          <p>“We engaged Lindsay and Good Growth at a critical inflection point for our business, and we started seeing results within weeks.”</p>
+          <cite>Mike Marotti, CEO, Personified</cite>
+        </blockquote>
+      </div>
+    </article>
+
+    <article class="project rev reveal">
+      <div class="blurb">
+        <div class="heading">
+          <p class="tags">Asset Creation · Marketing · Design</p>
+          <h3>Bee Clean</h3>
+        </div>
+        <a class="ulink" href="#">View case study →</a>
+        <blockquote class="quote">
+          <p>“[Placeholder client quote about what changed for the business. One or two sentences.]”</p>
+          <cite>[Name, Title], Bee Clean</cite>
+        </blockquote>
+      </div>
+      <div class="img"><img src="assets/beeclean.png" alt="Bee Clean beeswax hand sanitizer packaging with honeycomb and lavender"></div>
+    </article>
+
+    <article class="project reveal">
+      <div class="img"><img src="assets/nmt.png" alt="NMT website shown on a laptop"></div>
+      <div class="blurb">
+        <div class="heading">
+          <p class="tags">Web Design · Development</p>
+          <h3>NMT</h3>
+          <a class="ulink" href="#">View case study →</a>
+        </div>
+        <blockquote class="quote">
+          <p>“[Placeholder client quote about what changed for the business. One or two sentences.]”</p>
+          <cite>[Name, Title], NMT</cite>
+        </blockquote>
+      </div>
+    </article>
+  </div>
+</section>
+
+<section class="contact" id="contact">
+  <div class="wrap">
+    <div class="contact-copy reveal">
+      <h2>Let's grow.</h2>
+      <p class="lede">Tell us where you're headed. We'll get back to you within two business days.</p>
+      <p class="email">[email address]</p>
+      <p class="loc">Proudly building in Albuquerque, NM.</p>
+    </div>
+    <form id="form" class="reveal" novalidate>
+      <div class="name-row">
+        <div class="field"><input name="first" placeholder="First name *" required aria-label="First name"></div>
+        <div class="field"><input name="last" placeholder="Last name *" required aria-label="Last name"></div>
+      </div>
+      <div class="field"><input name="email" type="email" placeholder="Email *" required aria-label="Email"></div>
+      <div class="field"><input name="company" placeholder="Company" aria-label="Company"></div>
+      <div class="field select">
+        <select name="need" aria-label="What do you need?">
+          <option value="" selected>What do you need? (Strategy / Branding / Website / Campaigns / Not sure yet)</option>
+          <option>Strategy</option><option>Branding</option><option>Website</option><option>Campaigns</option><option>Not sure yet</option>
+        </select>
+      </div>
+      <div class="field"><textarea name="project" placeholder="Tell us a bit about your project *" required aria-label="Tell us a bit about your project"></textarea></div>
+      <button class="btn" type="submit">Send it →</button>
+      <p class="sent"><strong>Thanks — it's in.</strong> We'll get back to you within two business days.</p>
+    </form>
+  </div>
+  <div class="sandias" aria-hidden="true"><picture><source srcset="assets/sandias.webp" type="image/webp"><img src="assets/sandias.png" alt="" loading="lazy" width="2851" height="730"></picture></div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="wordmark">GOOD<br>GROWTH</div>
+    <div class="foot-links">
+      <nav><a href="#work">Work</a><a href="#services">Services</a><a href="#about">About</a><a href="#contact">Work with us</a></nav>
+      <small>© 2026 Good Growth</small>
+    </div>
+  </div>
+</footer>
+
+<script>
+(() => {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Hero fills the screen below the nav. The square's right edge sits on the right edge of the
+  // "Work with us" button (the page margin) and it grows to fill the hero's height, capped at ~45% of the width.
+  const nav = document.getElementById('nav');
+  const heroWrap = document.querySelector('.hero .wrap');
+  const sizeHero = () => {
+    if (innerWidth <= 860) { heroWrap.style.removeProperty('--anim'); return; }
+    const cs = getComputedStyle(heroWrap);
+    const padL = parseFloat(cs.paddingLeft), padR = parseFloat(cs.paddingRight);
+    const padT = parseFloat(cs.paddingTop), padB = parseFloat(cs.paddingBottom);
+    const availH = innerHeight - parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--nav-h')) - padT - padB;
+    const availW = (innerWidth - padL - padR - parseFloat(cs.columnGap)) * 0.45;
+    heroWrap.style.setProperty('--anim', Math.max(260, Math.min(availH, availW, 760)) + 'px');
+  };
+  sizeHero(); addEventListener('resize', sizeHero);
+  if (document.fonts) document.fonts.ready.then(sizeHero);
+
+  // Hero logo animation: black swipes up, a thick jagged line chart draws upward, then straightens into the slash.
+  // The slash is a thick straight stroke clipped to a horizontal band, which gives exactly the logo's parallelogram.
+  (() => {
+    const black = document.getElementById('ggBlack');
+    const line = document.getElementById('ggLine');
+    const box = document.getElementById('logoAnim');
+    // Slash centreline (1000-unit space, from the logo mark), extended past the clip band so the ends cut flat
+    const A = [226.8, 845.3], B = [773.2, 154.7];
+    const SLASH_W = 92.5;           // stroke width that yields the logo slash's thickness
+    const CHART_W = 54;
+    const chart = [[150,860],[262,690],[352,745],[462,548],[556,612],[664,392],[748,452],[870,135]];
+    const slash = chart.map((_, i) => { const t = i / (chart.length - 1); return [A[0] + (B[0]-A[0])*t, A[1] + (B[1]-A[1])*t]; });
+    const ease = t => t < .5 ? 4*t*t*t : 1 - Math.pow(-2*t + 2, 3) / 2;
+    const clamp = t => Math.max(0, Math.min(1, t));
+    const setPts = k => line.setAttribute('points', chart.map((p, i) => [p[0] + (slash[i][0]-p[0])*k, p[1] + (slash[i][1]-p[1])*k].join(',')).join(' '));
+    const len = () => line.getTotalLength ? line.getTotalLength() : 2000;
+    // Timeline (seconds)
+    const T = { riseStart: .15, riseEnd: .85, drawStart: .75, drawEnd: 1.7, morphStart: 1.85, morphEnd: 2.6 };
+    let raf, t0;
+    function render(sec) {
+      const rise = ease(clamp((sec - T.riseStart) / (T.riseEnd - T.riseStart)));
+      black.setAttribute('transform', `translate(0 ${1000 * (1 - rise)})`);
+      const draw = ease(clamp((sec - T.drawStart) / (T.drawEnd - T.drawStart)));
+      const morph = ease(clamp((sec - T.morphStart) / (T.morphEnd - T.morphStart)));
+      setPts(morph);
+      line.setAttribute('stroke-width', CHART_W + (SLASH_W - CHART_W) * morph);
+      if (draw < 1) { const L = len(); line.style.strokeDasharray = L; line.style.strokeDashoffset = L * (1 - draw); }
+      else { line.style.strokeDasharray = 'none'; line.style.strokeDashoffset = 0; }
+      line.style.opacity = draw > 0 ? 1 : 0;
+    }
+    function play() {
+      cancelAnimationFrame(raf); t0 = performance.now();
+      const tick = now => { const sec = (now - t0) / 1000; render(sec); if (sec < T.morphEnd + .05) raf = requestAnimationFrame(tick); };
+      raf = requestAnimationFrame(tick);
+    }
+    if (reduce) render(99); else play();
+    box.addEventListener('click', play);
+  })();
+
+  // Logo = back to the very top (not the hero anchor, which would tuck under the sticky nav)
+  document.getElementById('homeLink').addEventListener('click', e => {
+    e.preventDefault();
+    history.replaceState(null, '', location.pathname + location.search);
+    scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
+  });
+
+  // Build marquee rows: enough small/big pairs to always cover the viewport while moving
+  const rows = [...document.querySelectorAll('.marquee')].map(el => {
+    const pair = `<span class="small">${el.dataset.small}</span><span class="big">${el.dataset.big}</span>`;
+    el.innerHTML = pair.repeat(8);
+    el.setAttribute('aria-hidden', 'true');
+    return { el, dir: +el.dataset.dir, offset: +el.dataset.offset };
+  });
+  const flood = document.querySelector('.flood');
+
+  // Scroll-linked parallax: each line moves opposite to its neighbour.
+  // Progress runs 0 → 1 as the section travels from viewport bottom to top.
+  const TRAVEL = 0.55; // fraction of viewport width each row travels across the full pass
+  let target = 0, current = 0, ticking = false;
+
+  function measure() {
+    const r = flood.getBoundingClientRect();
+    const vh = innerHeight;
+    target = Math.min(1, Math.max(0, (vh - r.top) / (vh + r.height)));
+  }
+  function frame() {
+    current += (target - current) * 0.12;         // eased follow for a smooth, weighted feel
+    const dist = innerWidth * TRAVEL;
+    const centered = current - 0.5;                // Figma layout = mid-scroll state
+    const scale = innerWidth / 1440;
+    rows.forEach(({ el, dir, offset }) => {
+      const raw = offset * Math.min(1, scale) + dir * centered * dist * 2;
+      const w = el.firstElementChild.offsetWidth + el.children[1].offsetWidth + 2 * parseFloat(getComputedStyle(el).columnGap);
+      const x = (((raw % w) + w) % w) - w;         // wrap one pair-width so the edge never shows a gap
+      el.style.transform = `translate3d(${x}px,0,0)`;
+    });
+    if (Math.abs(target - current) > 0.0005) requestAnimationFrame(frame);
+    else ticking = false;
+  }
+  function onScroll() {
+    nav.classList.toggle('scrolled', scrollY > 10);
+    if (reduce) return;
+    measure();
+    if (!ticking) { ticking = true; requestAnimationFrame(frame); }
+  }
+  addEventListener('scroll', onScroll, { passive: true });
+  addEventListener('resize', onScroll);
+  measure(); current = target; ticking = true; frame(); onScroll();
+
+  // Reveal on enter
+  const io = new IntersectionObserver(entries => entries.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+  }), { threshold: 0.15 });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+  // Form
+  const form = document.getElementById('form');
+  const sel = form.querySelector('select');
+  sel.addEventListener('change', () => sel.classList.toggle('chosen', !!sel.value));
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    let ok = true;
+    form.querySelectorAll('[required]').forEach(f => {
+      const bad = !f.value.trim() || (f.type === 'email' && !/^\S+@\S+\.\S+$/.test(f.value));
+      f.closest('.field').classList.toggle('invalid', bad);
+      if (bad) ok = false;
+    });
+    if (!ok) return;
+    form.querySelectorAll('.field, .name-row, .btn').forEach(el => el.style.display = 'none');
+    form.querySelector('.sent').style.display = 'block';
+  });
+  form.addEventListener('input', e => e.target.closest('.field')?.classList.remove('invalid'));
+})();
+</script>
+</body>
+</html>
